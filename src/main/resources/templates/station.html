@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css"/>
+    <link rel="stylesheet" href="/css/common/bootstrap.min.css"/>
+</head>
+<body>
+<div id="newStation" style="float: left;">
+    <button @click="dialogVisible=true" style="height: 40px;">新增</button>
+    <template>
+        <el-dialog title="新增" :visible.sync="dialogVisible"
+                   width="50%">
+            <el-form ref="form" :inline="true" :model="station" label-width="80px">
+                <el-form-item label="站点名称">
+                    <el-input v-model="station.name"></el-input>
+                </el-form-item>
+                <el-form-item label="行政区">
+                    <el-input v-model="station.district"></el-input>
+                </el-form-item>
+                <el-form-item label="地址">
+                    <el-input v-model="station.location"></el-input>
+                </el-form-item>
+                <el-form-item label="经度">
+                    <el-input v-model="station.longitude"></el-input>
+                </el-form-item>
+                <el-form-item label="纬度">
+                    <el-input v-model="station.latitude"></el-input>
+                </el-form-item>
+                <el-form-item label="总车位数">
+                    <el-input v-model="station.carNum"></el-input>
+                </el-form-item>
+                <el-form-item label="停车场结构">
+                    <el-input v-model="station.parkStruct"></el-input>
+                </el-form-item>
+                <el-form-item label="场站场景">
+                    <el-checkbox-group v-model="station.scene">
+                        <el-checkbox label="办公" name="scene"></el-checkbox>
+                        <el-checkbox label="学区" name="scene"></el-checkbox>
+                        <el-checkbox label="交通枢纽" name="scene"></el-checkbox>
+                        <el-checkbox label="商场" name="scene"></el-checkbox>
+                        <el-checkbox label="综合" name="scene"></el-checkbox>
+                        <el-checkbox label="景区" name="scene"></el-checkbox>
+                        <el-checkbox label="社区" name="scene"></el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
+                <el-form-item label="总月租（现金）">
+                    <el-input v-model="station.totalMonthCostCash"></el-input>
+                </el-form-item>
+                <el-form-item label="总月租（券）">
+                    <el-input v-model="station.totalMonthCostCoupon"></el-input>
+                </el-form-item>
+                <el-form-item label="其他资源置换">
+                    <el-input v-model="station.otherResource"></el-input>
+                </el-form-item>
+                <el-form-item label="本次签约时长">
+                    <el-input v-model="station.duration"></el-input>
+                </el-form-item>
+                <el-form-item :span="30" label="费用总计（现金）">
+                    <el-input v-model="station.totalCostCash"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="addStation">立即创建</el-button>
+                    <el-button @click="dialogVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </template>
+</div>
+
+<div id="filter">
+    <template>
+        <el-select v-model="type" placeholder="请选择停车场结构">
+            <el-option
+                    v-for="item in parkStructs"
+                    :key="item.id"
+                    :label="item.name"
+                    :value="item.id">
+            </el-option>
+        </el-select>
+    </template>
+</div>
+
+<div id="stations">
+    <template>
+        <el-table :data="tableData" style="width: 100%">
+            <el-table-column label="站点名称">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="行政区">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.district }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="地址">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.location }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="经度">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.longitude }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="纬度">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.latitude }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="总车位数">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.carNum }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="停车场结构">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ toName(scope.row.parkStruct) }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="场站场景">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.scene }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="总月租（现金）">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.totalMonthCostCash }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="总月租（券）">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.totalMonthCostCoupon }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="其他资源转换">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.otherResource }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="本次签约时长">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.duration }}月</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="费用总计（现金）">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.totalCostCash }}</span>
+                </template>
+            </el-table-column>
+
+
+            <!--<el-table-column label="姓名" width="180">
+                <template slot-scope="scope">
+                    <el-popover trigger="hover" placement="top">
+                        <p>姓名: {{ scope.row.name }}</p>
+                        <p>住址: {{ scope.row.address }}</p>
+                        <div slot="reference" class="name-wrapper">
+                            <el-tag size="medium">{{ scope.row.name }}</el-tag>
+                        </div>
+                    </el-popover>
+                </template>
+            </el-table-column>-->
+            <el-table-column label="操作">
+                <template slot-scope="scope">
+                    <el-button size="mini" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                    <el-button size="mini" type="danger" @click="handleDelete(scope.$index, scope.row)">删除</el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+
+        <el-dialog title="编辑" :visible.sync="dialogVisible" :showClose=false
+                   width="50%" :before-close="handleClose" :closeOnClickModal='true'>
+            <el-form ref="form" :inline="true" :model="station" label-width="80px">
+
+                <!--<el-form-item :label="item" v-for="item in itemNames">
+                    <el-input v-model="station.name"></el-input>
+                </el-form-item>-->
+
+                <el-form-item label="站点名称">
+                    <el-input v-model="station.name"></el-input>
+                </el-form-item>
+                <el-form-item label="行政区">
+                    <el-input v-model="station.district"></el-input>
+                </el-form-item>
+                <el-form-item label="地址">
+                    <el-input v-model="station.location"></el-input>
+                </el-form-item>
+                <el-form-item label="经度">
+                    <el-input v-model="station.longitude"></el-input>
+                </el-form-item>
+                <el-form-item label="纬度">
+                    <el-input v-model="station.latitude"></el-input>
+                </el-form-item>
+                <el-form-item label="总车位数">
+                    <el-input v-model="station.carNum"></el-input>
+                </el-form-item>
+                <el-form-item label="停车场结构">
+                    <el-select v-model="station.parkStruct" placeholder="请选择停车场结构">
+                        <el-option :label="struct.name" :value="struct.id" v-for="struct in parkStructs"></el-option>
+                    </el-select>
+                </el-form-item>
+
+                <el-form-item label="场站场景">
+                    <el-checkbox-group v-model="station.scene">
+                        <el-checkbox label="办公" name="scene"></el-checkbox>
+                        <el-checkbox label="学区" name="scene"></el-checkbox>
+                        <el-checkbox label="交通枢纽" name="scene"></el-checkbox>
+                        <el-checkbox label="商场" name="scene"></el-checkbox>
+                        <el-checkbox label="综合" name="scene"></el-checkbox>
+                        <el-checkbox label="景区" name="scene"></el-checkbox>
+                        <el-checkbox label="社区" name="scene"></el-checkbox>
+                    </el-checkbox-group>
+                </el-form-item>
+                <el-form-item label="总月租（现金）">
+                    <el-input v-model="station.totalMonthCostCash"></el-input>
+                </el-form-item>
+                <el-form-item label="总月租（券）">
+                    <el-input v-model="station.totalMonthCostCoupon"></el-input>
+                </el-form-item>
+                <el-form-item label="其他资源置换">
+                    <el-input v-model="station.otherResource"></el-input>
+                </el-form-item>
+                <el-form-item label="本次签约时长">
+                    <el-input v-model="station.duration"></el-input>
+                </el-form-item>
+                <el-form-item :span="30" label="费用总计（现金）">
+                    <el-input v-model="station.totalCostCash"></el-input>
+                </el-form-item>
+                <!--
+                </el-form-item>
+                <el-form-item label="活动时间">
+                    <el-col :span="11">
+                        <el-date-picker type="date" placeholder="选择日期" v-model="form.date1"
+                                        style="width: 100%;"></el-date-picker>
+                    </el-col>
+                    <el-col class="line" :span="2">-</el-col>
+                    <el-col :span="11">
+                        <el-time-picker type="fixed-time" placeholder="选择时间" v-model="form.date2"
+                                        style="width: 100%;"></el-time-picker>
+                    </el-col>
+                </el-form-item>
+                <el-form-item label="即时配送">
+                    <el-switch v-model="form.delivery"></el-switch>
+                </el-form-item>
+
+                <el-form-item label="特殊资源">
+                    <el-radio-group v-model="form.resource">
+                        <el-radio label="线上品牌商赞助"></el-radio>
+                        <el-radio label="线下场地免费"></el-radio>
+                    </el-radio-group>
+                </el-form-item>
+                <el-form-item label="活动形式">
+                    <el-input type="textarea" v-model="form.desc"></el-input>
+                </el-form-item>-->
+                <el-form-item>
+                    <el-button type="primary" @click="onSubmit">确认修改</el-button>
+                    <el-button @click="dialogVisible = false">取消</el-button>
+                </el-form-item>
+            </el-form>
+        </el-dialog>
+    </template>
+</div>
+</body>
+<script type="text/javascript" src="/js/common/common.js" charset="utf-8"></script>
+<script>
+    function toUploadData(row) {
+        var station = Object.assign({}, row);
+        station.scene = filterBlank(row.scene).join();
+        return station;
+    }
+
+    function transform(data, field) {
+        if (data[field] == null || data[field] == '') {
+            data[field] = [];
+        } else {
+            data[field] = data[field].split(",");
+        }
+        return data;
+    }
+
+    function transformArray(arr, field) {
+        for (i in arr) {
+            arr[i] = transform(arr[i], field)
+        }
+    }
+
+    var stations = new Vue({
+        el: "#stations",
+        data: {
+            tableData: [],
+            dialogVisible: false,
+            station: {},
+            itemNames: ['key', 'time', 'location'],
+            parkStructs:[]
+        },
+        created: function () {
+            this.initStations(-1);
+            var thiz = this;
+            $.ajaxSetup({type: "GET", dataType: "JSON", async: false});
+            $.ajax({
+                url: "/zy/3/parkStructs",
+                error: function () {
+                },
+                success: function (ret) {
+                    thiz.parkStructs = ret.message
+                }
+            })
+        },
+        methods: {
+            initStations(type) {
+                $.ajaxSetup({type: "GET", dataType: "JSON"});
+                $.ajax({
+                    url: "/zy/3/stations?type=" + type,
+                    error: function () {
+                    },
+                    success: function (ret) {
+                        stations.tableData = ret.message;
+                        transformArray(stations.tableData, "scene");
+                    }
+                });
+            },
+            handleClose(done) {
+                done();
+            },
+            onSubmit() {
+                $.ajaxSetup({
+                    type: "PUT", contentType: "application/json; charset=utf-8",
+                    dataType: "JSON"
+                });
+                $.ajax({
+                    url: "/zy/3/stations",
+                    data: JSON.stringify(toUploadData(this.station)),
+                    success: function () {
+                        location.reload();
+                    }
+                });
+
+            },
+            toName(id) {
+                var name;
+                $.ajaxSetup({type: "GET", dataType: "JSON", async: false});
+                $.ajax({
+                    url: "/zy/3/parkStructs/" + id,
+                    success: function (result) {
+                        name = result.message;
+                    }
+                })
+                return name;
+            },
+            handleEdit(index, row) {
+                this.station = Object.assign({}, row);
+                this.dialogVisible = true;
+            },
+            handleDelete(index, row) {
+                $.ajaxSetup({
+                    type: "DELETE",
+                    dataType: "JSON"
+                });
+                $.ajax({
+                    url: "/zy/3/stations/" + row.id,
+                    success: function () {
+                        location.reload();
+                    }
+                });
+            }
+        }
+    })
+
+    var filter = new Vue({
+        el: "#filter",
+        data: {
+            type: {},
+            parkStructs: []
+        },
+        created: function () {
+            this.parkStructs = Object.assign([], stations.parkStructs);
+            this.type = {"id":-1,"name":"全部"};
+            this.parkStructs.push(this.type);
+        },
+        watch: {
+            type(curVal, oldVal) {
+                stations.initStations(curVal);
+            }
+        }
+    })
+    var newStation = new Vue({
+        el: "#newStation",
+        data: {
+            station: {},
+            dialogVisible: false
+        },
+        methods: {
+            addStation() {
+                $.ajaxSetup({type: "POST", contentType: "application/json; charset=utf-8", dataType: "JSON"});
+                $.ajax({
+                    url: "/zy/3/stations",
+                    data: JSON.stringify(toUploadData(this.station)),
+                    success: function (ret) {
+                        stations.tableData = ret.message;
+                        location.reload();
+                    }
+                });
+            }
+        }
+    })
+    /*var app1 = new Vue({
+
+        methods: {
+            handleClose(done) {
+                this.$confirm('确认关闭？')
+                    .then(_ => {
+                    done();
+            })
+            .catch(_ => {});
+            }
+        }
+    })*/
+
+
+</script>
+</html>
